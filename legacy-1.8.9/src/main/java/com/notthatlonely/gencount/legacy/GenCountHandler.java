@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.settings.KeyBinding;
@@ -36,9 +35,13 @@ public class GenCountHandler {
 
     private static final double MAX_DISTANCE = 48.0;
     private static final double LABEL_RISE = 0.55;
-    private static final int MARGIN = 2;
+    /** Fixed label size: the same on screen at any distance. Very small on purpose. */
+    private static final float LABEL_SCALE = 0.5F;
+    /** Text opacity: 60%. There is no background box. */
+    private static final float TEXT_OPACITY = 0.6F;
+
+    private static final int MARGIN = 1;
     private static final int LINE_GAP = 1;
-    private static final int BACKGROUND = 0x90000000;
 
     private final List<DropCluster> clusters = new ArrayList<DropCluster>();
     private final List<Projected> projected = new ArrayList<Projected>();
@@ -88,6 +91,11 @@ public class GenCountHandler {
 
             GemFamily family = GemMatcher.familyOf(stack.getItem());
             if (family == null || entity.getDistanceSqToEntity(mc.thePlayer) > maxSq) {
+                continue;
+            }
+
+            // No see-through-walls: skip drops that are hidden behind blocks.
+            if (!mc.thePlayer.canEntityBeSeen(entity)) {
                 continue;
             }
 
@@ -177,7 +185,7 @@ public class GenCountHandler {
         List<LabelBox> boxes = new ArrayList<LabelBox>();
 
         for (Projected p : projected) {
-            float scale = Math.max(0.6F, Math.min(1.3F, 10.0F / Math.max(p.distance, 1.0F)));
+            float scale = LABEL_SCALE;
             List<GemFamily> families = p.cluster.families();
             List<String> lines = new ArrayList<String>();
 
@@ -202,6 +210,10 @@ public class GenCountHandler {
         // Different spots never cover each other
         LabelLayout.separate(boxes);
 
+        // Needed so the 60% text opacity actually blends (no background box draws it for us)
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+
         for (LabelBox box : boxes) {
             Label label = (Label) box.data;
 
@@ -210,13 +222,11 @@ public class GenCountHandler {
             GlStateManager.scale(label.scale, label.scale, 1F);
             GlStateManager.translate(-label.width * 0.5F, -label.height * 0.5F, 0F);
 
-            Gui.drawRect(-MARGIN, -MARGIN, label.width + MARGIN, label.height + MARGIN, BACKGROUND);
-
             for (int i = 0; i < label.lines.size(); i++) {
                 String line = label.lines.get(i);
                 float x = (label.width - font.getStringWidth(line)) * 0.5F;
                 float y = i * (font.FONT_HEIGHT + LINE_GAP);
-                font.drawStringWithShadow(line, x, y, label.families.get(i).argb());
+                font.drawStringWithShadow(line, x, y, label.families.get(i).argb(TEXT_OPACITY));
             }
 
             GlStateManager.popMatrix();

@@ -13,6 +13,8 @@ as a colored count floating right above the drops.
 - Drops that lie close together share one label, with **one colored line per type**. If diamonds and gold
   drop at the same spot, both counts are shown.
 - Labels of different spots are pushed apart, so they never cover each other.
+- No see-through-walls: drops hidden behind blocks get no label.
+- Labels are tiny, a fixed size at any distance, with no background and 60% text opacity.
 - Press **G** to toggle (change it under Controls).
 - Client-side only. Nothing is needed on the server.
 
@@ -50,8 +52,4 @@ few version-specific lines.
 
 ## Credits
 
-Inspired by [Drop Count](https://github.com/wlm3201/drop-count) by wlm3201.
-
-## License
-
-GPL-3.0, see `LICENSE`.
+NotThatLonely

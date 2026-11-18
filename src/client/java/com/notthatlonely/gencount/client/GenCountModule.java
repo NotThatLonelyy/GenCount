@@ -15,7 +15,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -30,14 +29,13 @@ public final class GenCountModule {
     /** How far above the drops the bottom edge of the label sits, in blocks. */
     private static final double LABEL_RISE = 0.55;
 
-    private static final float NAMETAG_SCALE = 0.025F;
-    private static final float MIN_SCALE = 0.6F;
-    private static final float MAX_SCALE = 1.5F;
-    private static final float MIN_DISTANCE = 0.5F;
+    /** Fixed label size: the same on screen at any distance. Very small on purpose. */
+    private static final float LABEL_SCALE = 0.5F;
+    /** Text opacity: 60%. There is no background box. */
+    private static final float TEXT_OPACITY = 0.6F;
 
-    private static final int MARGIN = 2;
+    private static final int MARGIN = 1;
     private static final int LINE_GAP = 1;
-    private static final int BACKGROUND = 0x90000000;
 
     private static final List<DropCluster> clusters = new ArrayList<>();
     private static final Matrix4f projectionBuffer = new Matrix4f();
@@ -58,7 +56,7 @@ public final class GenCountModule {
 
     public static void onClientTick(final Minecraft minecraft) {
         clusters.clear();
-        if (!enabled || minecraft.level == null) {
+        if (!enabled || minecraft.level == null || minecraft.player == null) {
             return;
         }
 
@@ -83,6 +81,11 @@ public final class GenCountModule {
 
             final Vec3 position = itemEntity.position();
             if (position.distanceToSqr(cameraPosition) > maxDistanceSquared) {
+                continue;
+            }
+
+            // No see-through-walls: skip drops that are hidden behind blocks.
+            if (!minecraft.player.hasLineOfSight(itemEntity)) {
                 continue;
             }
 
@@ -123,7 +126,7 @@ public final class GenCountModule {
                 continue;
             }
 
-            final float scale = labelScale(minecraft, camera, screen.z);
+            final float scale = LABEL_SCALE;
             final List<GemFamily> families = cluster.families();
             final List<String> lines = new ArrayList<>(families.size());
 
@@ -171,16 +174,13 @@ public final class GenCountModule {
         graphics.pose().scale(label.scale, label.scale);
         graphics.pose().translate(-label.width * 0.5F, -label.height * 0.5F);
 
-        graphics.fill(
-                -MARGIN, -MARGIN, label.width + MARGIN, label.height + MARGIN, BACKGROUND);
-
         for (int i = 0; i < label.lines.size(); i++) {
             graphics.centeredText(
                     font,
                     Component.literal(label.lines.get(i)),
                     label.width / 2,
                     i * (font.lineHeight + LINE_GAP),
-                    label.families.get(i).argb());
+                    label.families.get(i).argb(TEXT_OPACITY));
         }
 
         graphics.pose().popMatrix();
@@ -201,16 +201,6 @@ public final class GenCountModule {
 
         final int size = points.size();
         return new Vec3(x / size, y / size, z / size);
-    }
-
-    private static float labelScale(
-            final Minecraft minecraft, final Camera camera, final float distance) {
-        final float guiHeight = minecraft.getWindow().getGuiScaledHeight();
-        final float halfFov = (float) Math.tan(Math.toRadians(camera.getFov()) * 0.5);
-        final float depth = Math.max(distance, MIN_DISTANCE);
-        final float pixelsPerBlock = guiHeight / (2.0F * depth * halfFov);
-
-        return Mth.clamp(NAMETAG_SCALE * 1.6F * pixelsPerBlock, MIN_SCALE, MAX_SCALE);
     }
 
     private static Vector3f project(final Vec3 position, final Camera camera) {

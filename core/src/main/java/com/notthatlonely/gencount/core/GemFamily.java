@@ -28,4 +28,10 @@ public enum GemFamily {
     public int argb() {
         return 0xFF000000 | rgb;
     }
+
+    /** Color with the given opacity (0.0 - 1.0), e.g. 0.6F for 60%. */
+    public int argb(float opacity) {
+        int alpha = Math.round(Math.max(0F, Math.min(1F, opacity)) * 255F);
+        return (alpha << 24) | rgb;
+    }
 }
