@@ -22,7 +22,7 @@ java {
 loom {
 	silentMojangMappingsLicense()
 	forge {
-		pack200Provider = new dev.architectury.pack200.java.Pack200Adapter()
+		pack200Provider.set(new dev.architectury.pack200.java.Pack200Adapter())
 	}
 }
 

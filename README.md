@@ -50,5 +50,8 @@ few version-specific lines.
 
 ## Credits
 
-NotThatLonely
+Inspired by [Drop Count](https://github.com/wlm3201/drop-count) by wlm3201.
 
+## License
+
+GPL-3.0, see `LICENSE`.
