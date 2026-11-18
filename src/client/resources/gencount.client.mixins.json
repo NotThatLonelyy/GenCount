@@ -1,0 +1,16 @@
+{
+	"required": true,
+	"package": "com.notthatlonely.gencount.client.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"client": [
+		"MinecraftTickMixin",
+		"OptionsMixin",
+		"OverlayRenderStateMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

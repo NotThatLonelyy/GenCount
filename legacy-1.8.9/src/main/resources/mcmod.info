@@ -1,0 +1,10 @@
+[
+  {
+    "modid": "gencount",
+    "name": "GenCount",
+    "description": "Shows how many iron, gold, diamond and emerald items are lying on the ground, in color, right above the drops.",
+    "version": "${version}",
+    "mcversion": "1.8.9",
+    "authorList": ["NotThatLonely"]
+  }
+]

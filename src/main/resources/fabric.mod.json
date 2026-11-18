@@ -1,0 +1,22 @@
+{
+	"schemaVersion": 1,
+	"id": "gencount",
+	"version": "${version}",
+	"name": "GenCount",
+	"description": "Shows how many iron, gold, diamond and emerald items are lying on the ground, in color, right above the drops.",
+	"authors": ["NotThatLonely"],
+	"license": "GPL-3.0-only",
+	"icon": "assets/gencount/icon.png",
+	"environment": "client",
+	"mixins": [
+		{
+			"config": "gencount.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"java": ">=25",
+		"minecraft": "${minecraft_dependency}"
+	}
+}

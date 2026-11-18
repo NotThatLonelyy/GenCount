@@ -1,0 +1,73 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  modern:
+    name: 26.x (Fabric)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x gradlew && ./gradlew buildAll --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jars-modern
+          path: |
+            build/libs/*.jar
+            !build/libs/*-dev.jar
+            !build/libs/*-sources*.jar
+
+  legacy:
+    name: 1.8.9 (Forge)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: |
+            8
+            17
+      - uses: gradle/actions/setup-gradle@v4
+      - working-directory: legacy-1.8.9
+        run: chmod +x gradlew && ./gradlew build --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jars-legacy
+          path: |
+            legacy-1.8.9/build/libs/gencount-1.8.9-*.jar
+            !legacy-1.8.9/build/libs/*-dev.jar
+            !legacy-1.8.9/build/libs/*-sources*.jar
+
+  artifacts:
+    name: All versions together
+    needs: [modern, legacy]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: jars-*
+          merge-multiple: true
+          path: artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GenCount-all-versions
+          path: artifacts/*.jar
+      - name: Publish release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" artifacts/*.jar --title "${{ github.ref_name }}" --generate-notes --repo "${{ github.repository }}"
